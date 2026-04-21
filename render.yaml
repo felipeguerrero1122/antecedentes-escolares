@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: antecedentes-escolares-api
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: npm install && npm run prisma:generate && npm run prisma:deploy
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        sync: false

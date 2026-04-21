@@ -1,8 +1,10 @@
 import "dotenv/config";
 import bcrypt from "bcrypt";
+import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
 import express from "express";
 import session from "express-session";
+import pg from "pg";
 import { prisma } from "./prisma.js";
 import {
   normalizeAlumnoPayload,
@@ -13,6 +15,12 @@ import {
 const app = express();
 const port = Number(process.env.PORT || 3001);
 const isProduction = process.env.NODE_ENV === "production";
+const PgSession = connectPgSimple(session);
+const sessionTtlSeconds = 60 * 60 * 12;
+const pgPool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : undefined,
+});
 const configuredOrigins = (process.env.FRONTEND_ORIGINS || "")
   .split(",")
   .map((value) => value.trim())
@@ -46,11 +54,17 @@ app.use(
     secret: process.env.SESSION_SECRET || "cambia-este-secreto",
     resave: false,
     saveUninitialized: false,
+    store: new PgSession({
+      pool: pgPool,
+      tableName: "user_sessions",
+      createTableIfMissing: true,
+      ttl: sessionTtlSeconds,
+    }),
     cookie: {
       httpOnly: true,
       sameSite: isProduction ? "none" : "lax",
       secure: isProduction,
-      maxAge: 1000 * 60 * 60 * 12,
+      maxAge: sessionTtlSeconds * 1000,
     },
   }),
 );

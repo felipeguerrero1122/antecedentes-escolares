@@ -105,6 +105,19 @@ function getErrorMessage(error, fallback = "Ocurrió un error inesperado.") {
   return error?.body?.error || error?.message || fallback;
 }
 
+function compareMatricula(a, b) {
+  const valueA = (a?.matricula || "").trim();
+  const valueB = (b?.matricula || "").trim();
+  const numericA = /^\d+$/.test(valueA) ? Number(valueA) : Number.NaN;
+  const numericB = /^\d+$/.test(valueB) ? Number(valueB) : Number.NaN;
+
+  if (!Number.isNaN(numericA) && !Number.isNaN(numericB) && numericA !== numericB) {
+    return numericA - numericB;
+  }
+
+  return valueA.localeCompare(valueB, "es", { numeric: true, sensitivity: "base" });
+}
+
 const S = {
   page: { maxWidth: 720, margin: "0 auto", padding: "24px 16px", fontFamily: "'Segoe UI', system-ui, sans-serif" },
   pageTall: { minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, fontFamily: "'Segoe UI', system-ui, sans-serif" },
@@ -797,14 +810,17 @@ export default function App() {
     }
   }
 
-  const filtered = alumnos.filter((a) => {
-    const q = search.toLowerCase();
-    return !q
-      || `${a.nombres} ${a.apellidos}`.toLowerCase().includes(q)
-      || (a.run || "").toLowerCase().includes(q)
-      || (a.curso || "").toLowerCase().includes(q)
-      || (a.comuna || "").toLowerCase().includes(q);
-  });
+  const filtered = alumnos
+    .filter((a) => {
+      const q = search.toLowerCase();
+      return !q
+        || `${a.nombres} ${a.apellidos}`.toLowerCase().includes(q)
+        || (a.run || "").toLowerCase().includes(q)
+        || (a.curso || "").toLowerCase().includes(q)
+        || (a.comuna || "").toLowerCase().includes(q)
+        || (a.matricula || "").toLowerCase().includes(q);
+    })
+    .sort(compareMatricula);
 
   if (booting) {
     return (

@@ -143,7 +143,7 @@ app.post("/api/auth/logout", (req, res) => {
 
 app.get("/api/alumnos", requireAuth, async (_req, res) => {
   const alumnos = await prisma.alumno.findMany({
-    orderBy: [{ apellidos: "asc" }, { nombres: "asc" }],
+    orderBy: [{ matricula: "asc" }, { apellidos: "asc" }, { nombres: "asc" }],
   });
 
   res.json({ alumnos: alumnos.map(serializeAlumno) });
